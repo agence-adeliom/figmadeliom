@@ -18,10 +18,16 @@ const IMAGE_URL = `${BASE_URL}/images/${FILE_KEY}/?ids={nodeId}`;
 
 const STYLE_URL = `${BASE_URL}/styles/${FILE_KEY}/`;
 
-const DELAY = 1000;//in ms
+const DELAY = 100;//in ms
 
 
 const OUTPUT_FOLDER = './out';
+
+
+
+const OUTPUT_SASS_FOLDER = './out/sass';
+const OUTPUT_SASS_FILENAME = './_variables.scss';
+
 
 const HEADERS = {
     "X-Figma-Token": FIGMA_PERSONAL_TOKEN
@@ -30,6 +36,11 @@ const HEADERS = {
 const ELEMENT_TYPE = {
     ELLIPSE: 'ELLIPSE',
 };
+
+const COLOR_TYPE = {
+    SOLID: 'SOLID',
+    GRADIENT_LINEAR: 'GRADIENT_LINEAR',
+}
 
 
 
@@ -71,24 +82,19 @@ const getStyle = () => {
 }
 
 
-
 const downloadIcon = (icon) => {
 
     if(icon.name) {
         const iconId = icon.id;
         const folders = icon.name.split('/');
         const fileName = folders.pop();
-
         return getImage(iconId).then(r2 => {
-
             axios.get(r2.data.images[iconId]).then(response => {
-
                 let folder = checkFolders([OUTPUT_FOLDER, folders.join('/')].join('/'));
-
-                fs.writeFile(`${folder}/${fileName}.svg`, response.data, (err) => {
-                    console.log(`${folder}/${fileName}.svg successfully created!`);
+                const file = `${folder}/${fileName}.svg`;
+                fs.writeFile(file, response.data, (err) => {
+                    console.log(`${file} successfully created!`);
                 });
-
             })
         });
     }
@@ -112,7 +118,7 @@ export const getIcons = () => {
 
 }
 
-export const getColors = async () => {
+const getColors = async () => {
     let colors = [];
      await getNode(COLORS_NODE_ID).then(async (response) => {
         let styles = response.data.nodes[decodeURIComponent(COLORS_NODE_ID)].styles;
@@ -122,38 +128,89 @@ export const getColors = async () => {
                 //colors: solid : type
                 if(!nodeInfo.style && !nodeInfo.effects.length && nodeInfo.fills && nodeInfo.fills[0]) {
 
-                    if('SOLID' === nodeInfo.fills[0].type) {
-
+                    if(COLOR_TYPE.SOLID === nodeInfo.fills[0].type) {
                         const color = nodeInfo.fills[0].color;
                         return Promise.resolve({
                             name: nodeInfo.name,
                             color: rgbToHex(color.r * 255, color.g * 255, color.b * 255)
                         });
                     }
-                    else if('GRADIENT_LINEAR' === nodeInfo.fills[0].type) {
-
+                    else if(COLOR_TYPE.GRADIENT_LINEAR === nodeInfo.fills[0].type) {
+                        const gradient = getGradient(nodeInfo.fills[0].gradientHandlePositions, nodeInfo.fills[0].gradientStops);
                         return Promise.resolve({
                             name: nodeInfo.name,
-                            color: getGradient(nodeInfo.fills[0].gradientHandlePositions, nodeInfo.fills[0].gradientStops)
+                            color:`linear-gradient(${gradient})`,
+                            gradient: true
                         });
                     }
                 }
-
-
                 return Promise.resolve();
             });
             if(col) {
                 colors.push(col);
             }
-            sleep(100);
+            sleep(50);
         }
         return Promise.resolve();
     });
-
-     console.log(colors);
-
     return colors;
 }
+
+export const buildColors = async () => {
+
+  let contentArr = [
+      `/* Updated at ${new Date().toUTCString()}*/` + '\n',
+      '/* ===================\n' +
+      '\t    Colors (Same variables as Figma)\n' +
+      '/* ===================*/\n'
+  ];
+
+  const colorValues = await getColors();
+
+  if(!colorValues.length) {
+      console.log(`no color found, script aborded.`);
+      return;
+  }
+
+  let gradients = [];
+  let colors = [];
+  let colorsMap = [];
+
+  for(const color of colorValues) {
+      const row = `$${color.name}: ${color.color};`;
+      if(color.gradient) {
+          gradients.push(row);
+          continue;
+      }
+      colors.push(row);
+      colorsMap.push(`\t${color.name}: $${color.name},`)
+  }
+  colors.sort();
+  contentArr = contentArr.concat(colors);
+
+  //put gradients after colors var
+  if(gradients.length){
+      gradients.unshift('\n');
+      contentArr = contentArr.concat(gradients);
+  }
+
+  colorsMap.sort();
+  colorsMap.unshift('\n//generate classes colors & bg (.color-secondary-01, .bg-secondary-01)\n$colors: (');
+  colorsMap.push(');')
+  contentArr = contentArr.concat(colorsMap);
+
+  const content = contentArr.join('\n');
+
+  let folder = checkFolders(OUTPUT_SASS_FOLDER);
+
+  const file = `${folder}/${OUTPUT_SASS_FILENAME}`;
+
+  fs.writeFile(file, content, (err) => {
+      console.log(`${file} successfully created!`);
+  });
+
+};
+
 
 //gradient
 
@@ -174,7 +231,7 @@ const calculateAngle = (start, end) => {
 }
 
 const calculateGradient = (start, end) => {
-    return (end.y - start.y) / (end.x - start.x) * -1
+    return (end.y - start.y) / (end.x - start.x) * -1;
 }
 
 const radToDeg = (radian) => {

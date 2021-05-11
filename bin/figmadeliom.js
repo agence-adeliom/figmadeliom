@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import {getIcons, getColors} from "../index.js";
+import {getIcons, buildColors} from "../index.js";
 
 //getIcons();
 
-getColors();
+buildColors();

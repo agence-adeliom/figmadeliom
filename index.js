@@ -1,24 +1,25 @@
 import axios from "axios";
 import fs from 'fs';
 
-import {sleep, checkFolders, rgbToHex} from "./utils/tools.js";
+import {sleep, checkFolders, rgbToHex, getGradient} from "./utils/tools.js";
 
 const FIGMA_PERSONAL_TOKEN = '187690-d9b36d79-1b27-4182-9376-abeb826e7278'; //access token
 const FILE_KEY= "S5Y6JWXsg6fQhwercFaNd0"; //
 
-const ICONS_NODE_ID = "2%3A200";
-
-const COLORS_NODE_ID = "2%3A359";
-
 
 const BASE_URL = `https://api.figma.com/v1`;
-
 const FILE_URL = `${BASE_URL}/files/${FILE_KEY}/nodes?ids={nodeId}`;
 const IMAGE_URL = `${BASE_URL}/images/${FILE_KEY}/?ids={nodeId}`;
-
 const STYLE_URL = `${BASE_URL}/styles/${FILE_KEY}/`;
 
-const DELAY = 100;//in ms
+
+const ICONS_NODE_ID = "2%3A200";
+const COLORS_NODE_ID = "2%3A359";
+const FONTS_NODE_ID = "796%3A32";
+
+
+
+const ICON_DOWNLOAD_DELAY = 100;//in ms
 
 
 const OUTPUT_FOLDER = './out';
@@ -109,7 +110,7 @@ export const getIcons = () => {
 
         for(let icon of icons) {
             await downloadIcon(icon);
-            await sleep(DELAY);
+            await sleep(ICON_DOWNLOAD_DELAY);
         }
 
     }).catch(e => {
@@ -212,32 +213,12 @@ export const buildColors = async () => {
 };
 
 
-//gradient
 
-const getGradient = (gradientHandles, colors) => {
-    const angle = calculateAngle(gradientHandles[0], gradientHandles[1]);
-
-    const gradient = [`${angle}deg`];
-    for(let color of colors) {
-        gradient.push(`${rgbToHex(color.color.r * 255 ,color.color.g * 255 ,color.color.b * 255)} ${floatToPercent(color.position)}`);
-    }
-
-    return gradient.join(', ');
-};
-
-const calculateAngle = (start, end) => {
-    const radians = Math.atan(calculateGradient(start, end))
-    return parseInt(radToDeg(radians).toFixed(1))
-}
-
-const calculateGradient = (start, end) => {
-    return (end.y - start.y) / (end.x - start.x) * -1;
-}
-
-const radToDeg = (radian) => {
-    return (180 * radian) / Math.PI;
-}
-
-const floatToPercent = (value) => {
-    return (value *= 100).toFixed(0) + "%";
+export const getFonts = async () => {
+    let colors = [];
+    await getNode(FONTS_NODE_ID).then(async (response) => {
+        let styles = response.data.nodes[decodeURIComponent(FONTS_NODE_ID)].styles;
+        console.log(styles)
+    });
+    return colors;
 }

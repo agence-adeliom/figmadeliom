@@ -1,9 +1,5 @@
 #!/usr/bin/env node
+import {cli} from '../cli/index.js';
 
-import {getIcons, buildColors, getFonts} from "../index.js";
+cli();
 
-//getIcons();
-
-//buildColors();
-
-getFonts();

@@ -1,19 +1,21 @@
 {
   "name": "figmadeliom",
-  "version": "0.0.1",
-  "description": "Api Figma usage to automatise workflow ",
+  "version": "0.1",
+  "description": "Use Api Figma to automatise frontend workflow",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bin": {
     "figmadeliom": "bin/figmadeliom"
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "colors": "^1.4.0",
+    "commander": "^7.2.0",
     "fs": "0.0.1-security",
     "node-fetch": "^2.6.1"
   }

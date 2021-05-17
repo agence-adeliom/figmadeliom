@@ -5,7 +5,6 @@ export const sleep = (ms) => {
 };
 
 export const checkFolders = (path) => {
-
     if (!fs.existsSync(path)) {
         fs.mkdirSync(path, { recursive: true });
     }
@@ -19,7 +18,6 @@ export const rgbToHex = (r, g, b) => {
     }
     return hexColor;
 }
-
 
 export const getGradient = (gradientHandles, colors) => {
     const angle = calculateAngle(gradientHandles[0], gradientHandles[1]);

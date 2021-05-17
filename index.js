@@ -1,16 +1,10 @@
 import axios from "axios";
 import fs from 'fs';
+import colors from "colors";
 
 import {sleep, checkFolders, rgbToHex, getGradient} from "./utils/tools.js";
-
-const FIGMA_PERSONAL_TOKEN = '187690-d9b36d79-1b27-4182-9376-abeb826e7278'; //access token
-const FILE_KEY= "S5Y6JWXsg6fQhwercFaNd0"; //
-
-
-const BASE_URL = `https://api.figma.com/v1`;
-const FILE_URL = `${BASE_URL}/files/${FILE_KEY}/nodes?ids={nodeId}`;
-const IMAGE_URL = `${BASE_URL}/images/${FILE_KEY}/?ids={nodeId}`;
-const STYLE_URL = `${BASE_URL}/styles/${FILE_KEY}/`;
+import {getConfiguration} from './config.js';
+import {getNode, getImage, COLOR_TYPE} from './utils/figma.js'
 
 
 const ICONS_NODE_ID = "2%3A200";
@@ -18,117 +12,78 @@ const COLORS_NODE_ID = "2%3A359";
 const FONTS_NODE_ID = "796%3A32";
 
 
-
-const ICON_DOWNLOAD_DELAY = 100;//in ms
-
-
-const OUTPUT_FOLDER = './out';
+const configuration = getConfiguration();
 
 
-
-const OUTPUT_SASS_FOLDER = './out/sass';
-const OUTPUT_SASS_FILENAME = './_variables.scss';
-
-
-const HEADERS = {
-    "X-Figma-Token": FIGMA_PERSONAL_TOKEN
+//----
+const getOutputIconsFolder = () => {
+  return configuration.outputIconsDir;
 };
 
-const ELEMENT_TYPE = {
-    ELLIPSE: 'ELLIPSE',
+const getOutputSassFile = () => {
+    return configuration.outputSassFile;
 };
-
-const COLOR_TYPE = {
-    SOLID: 'SOLID',
-    GRADIENT_LINEAR: 'GRADIENT_LINEAR',
-}
-
-
-
-const getNodeUrl = (nodeId) => {
-    let url = FILE_URL.replace('{nodeId}', nodeId);
-    return url;
-}
-
-const getStyleUrl = () => {
-    let url = STYLE_URL;
-    return url;
-}
-
-const getImageUrl = (nodeId, format = 'svg') => {
-    let url = IMAGE_URL.replace('{nodeId}', encodeURIComponent(nodeId));
-    if(format) {
-        url += `&format=${format}`;
-    }
-    return url;
-}
-
-const getNode = (nodeId) => {
-    return axios.get(getNodeUrl(nodeId), {
-        headers: HEADERS
-    });
-}
-
-const getImage = (nodeId, format = 'svg') => {
-
-    return axios.get(getImageUrl(nodeId, format), {
-        headers: HEADERS
-    });
-}
-
-const getStyle = () => {
-    return axios.get(getStyleUrl(), {
-        headers: HEADERS
-    });
-}
 
 
 const downloadIcon = (icon) => {
-
     if(icon.name) {
         const iconId = icon.id;
         const folders = icon.name.split('/');
         const fileName = folders.pop();
-        return getImage(iconId).then(r2 => {
-            axios.get(r2.data.images[iconId]).then(response => {
-                let folder = checkFolders([OUTPUT_FOLDER, folders.join('/')].join('/'));
+        return getImage(iconId).then(response => {
+            let imageUrl = response.data.images[iconId];
+            axios.get(imageUrl).then(response => {
+                let folder = checkFolders([getOutputIconsFolder(), folders.join('/')].join('/'));
                 const file = `${folder}/${fileName}.svg`;
                 fs.writeFile(file, response.data, (err) => {
-                    console.log(`${file} successfully created!`);
+                    console.log(colors.green(`${file} successfully created!`));
                 });
-            })
+            }).catch(e => {
+                console.log(colors.red(`Error fetching image: ${imageUrl}`));
+            });
         });
     }
 };
 
 
 export const getIcons = () => {
+    if(!configuration.node_ids || !configuration.node_ids.icons){
+        console.log(colors.red('Missing node Id for icons, check your config file'));
+        return;
+    }
 
-    getNode(ICONS_NODE_ID).then(async (response) => {
+    const iconsNodeId = configuration.node_ids.icons;
 
-        let icons = response.data.nodes[decodeURIComponent(ICONS_NODE_ID)].document.children;
-
+    getNode(iconsNodeId).then(async (response) => {
+        let icons = response.data.nodes[decodeURIComponent(iconsNodeId)].document.children;
         for(let icon of icons) {
             await downloadIcon(icon);
-            await sleep(ICON_DOWNLOAD_DELAY);
+            await sleep(configuration.downloadDelay);
         }
-
     }).catch(e => {
-        console.error("ERROR");
+        console.log(colors.red(`Error fetching Figma API for nodeId: ${nodeId}`));
     });
 
 }
 
 const getColors = async () => {
-    let colors = [];
-     await getNode(COLORS_NODE_ID).then(async (response) => {
-        let styles = response.data.nodes[decodeURIComponent(COLORS_NODE_ID)].styles;
+
+    if(!configuration.node_ids || !configuration.node_ids.colors){
+        console.log(colors.red('Missing node Id for colors, check your config file'));
+        return;
+    }
+
+    let colorsList = [];
+
+    const colorNodeId = configuration.node_ids.colors;
+
+     await getNode(colorNodeId).then(async (response) => {
+        let styles = response.data.nodes[decodeURIComponent(colorNodeId)].styles;
         for(let nodeId of Object.keys(styles)){
              let col = await getNode(nodeId).then(async (response) => {
                 let nodeInfo = response.data.nodes[decodeURIComponent(nodeId)].document;
                 //colors: solid : type
                 if(!nodeInfo.style && !nodeInfo.effects.length && nodeInfo.fills && nodeInfo.fills[0]) {
-
                     if(COLOR_TYPE.SOLID === nodeInfo.fills[0].type) {
                         const color = nodeInfo.fills[0].color;
                         return Promise.resolve({
@@ -148,13 +103,13 @@ const getColors = async () => {
                 return Promise.resolve();
             });
             if(col) {
-                colors.push(col);
+                colorsList.push(col);
             }
-            sleep(50);
+            sleep(configuration.downloadDelay);
         }
         return Promise.resolve();
     });
-    return colors;
+    return colorsList;
 }
 
 export const buildColors = async () => {
@@ -166,15 +121,19 @@ export const buildColors = async () => {
       '/* ===================*/\n'
   ];
 
+  console.log(`Starting colors fetching from API`);
+
   const colorValues = await getColors();
 
+  console.log(colors.green(`Colors successfully fetched, starting treatment.`));
+
   if(!colorValues.length) {
-      console.log(`no color found, script aborded.`);
+      console.log(colors.red(`no color found, script aborded.`));
       return;
   }
 
   let gradients = [];
-  let colors = [];
+  let sassColors = [];
   let colorsMap = [];
 
   for(const color of colorValues) {
@@ -183,11 +142,11 @@ export const buildColors = async () => {
           gradients.push(row);
           continue;
       }
-      colors.push(row);
+      sassColors.push(row);
       colorsMap.push(`\t${color.name}: $${color.name},`)
   }
-  colors.sort();
-  contentArr = contentArr.concat(colors);
+    sassColors.sort();
+  contentArr = contentArr.concat(sassColors);
 
   //put gradients after colors var
   if(gradients.length){
@@ -202,18 +161,21 @@ export const buildColors = async () => {
 
   const content = contentArr.join('\n');
 
-  let folder = checkFolders(OUTPUT_SASS_FOLDER);
+  let folders = getOutputSassFile().split('/');
+  folders.pop();
 
-  const file = `${folder}/${OUTPUT_SASS_FILENAME}`;
+  checkFolders(folders.join('/'));
+
+  const file = getOutputSassFile();
 
   fs.writeFile(file, content, (err) => {
-      console.log(`${file} successfully created!`);
+      console.log(colors.green(`${file} successfully created!`));
   });
 
 };
 
 
-
+/*
 export const getFonts = async () => {
     let colors = [];
     await getNode(FONTS_NODE_ID).then(async (response) => {
@@ -222,3 +184,4 @@ export const getFonts = async () => {
     });
     return colors;
 }
+*/

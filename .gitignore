@@ -2,6 +2,7 @@
 out
 
 .tmpconfig.json
+.figmadeliom.json
 
 node_modules
 

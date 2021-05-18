@@ -2,6 +2,7 @@ import colors from "colors";
 import { createRequire } from 'module';
 
 export const CONFIG_FILE = '.configrc.json';
+export const USERCONFIG_FILE = '.figmadeliom.json';
 
 
 const require = createRequire(import.meta.url);
@@ -25,7 +26,7 @@ export const configurationIsComplete = () => {
 
 const getCustomConfiguration = () => {
 
-    let file = [process.cwd(), CONFIG_FILE].join('/');
+    let file = [process.cwd(), USERCONFIG_FILE].join('/');
     //let file = [process.cwd(), 'tmpconfig.json'].join('/');
     try {
         return require(file);

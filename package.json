@@ -14,7 +14,7 @@
   "author": "Adeliom - Thibaut Zancanaro",
   "license": "MIT",
   "bin": {
-    "figmadeliom": "bin/figmadeliom"
+    "figmadeliom": "bin/figmadeliom.js"
   },
   "dependencies": {
     "axios": "^0.21.1",

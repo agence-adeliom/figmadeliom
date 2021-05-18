@@ -1,13 +1,17 @@
 {
   "name": "figmadeliom",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Use Api Figma to automatise frontend workflow",
   "main": "index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThibautZanca/figmadeliom.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Adeliom - Thibaut Zancanaro",
   "license": "MIT",
   "bin": {
     "figmadeliom": "bin/figmadeliom"

@@ -30,6 +30,14 @@ export const getGradient = (gradientHandles, colors) => {
     return gradient.join(', ');
 };
 
+
+export const getNameFromPath = (name) => {
+    const folders = name.split('/');
+    const last = folders.pop();
+    return last;
+}
+
+
 const calculateAngle = (start, end) => {
     const radians = Math.atan(calculateGradient(start, end))
     return parseInt(radToDeg(radians).toFixed(1))
@@ -46,3 +54,5 @@ const radToDeg = (radian) => {
 const floatToPercent = (value) => {
     return (value *= 100).toFixed(0) + "%";
 }
+
+

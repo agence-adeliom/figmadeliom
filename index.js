@@ -2,7 +2,7 @@ import axios from "axios";
 import fs from 'fs';
 import colors from "colors";
 
-import {sleep, checkFolders, rgbToHex, getGradient} from "./utils/tools.js";
+import {sleep, checkFolders, rgbToHex, getGradient, getNameFromPath} from "./utils/tools.js";
 import {getConfiguration} from './config.js';
 import {getNode, getImage, COLOR_TYPE} from './utils/figma.js'
 
@@ -53,6 +53,7 @@ export const getIcons = () => {
     }
 
     const iconsNodeId = configuration.node_ids.icons;
+    console.log(`Starting icons fetching from API`);
 
     getNode(iconsNodeId).then(async (response) => {
         let icons = response.data.nodes[decodeURIComponent(iconsNodeId)].document.children;
@@ -84,17 +85,20 @@ const getColors = async () => {
                 let nodeInfo = response.data.nodes[decodeURIComponent(nodeId)].document;
                 //colors: solid : type
                 if(!nodeInfo.style && !nodeInfo.effects.length && nodeInfo.fills && nodeInfo.fills[0]) {
+
+                    let colorName = getNameFromPath(nodeInfo.name);
+
                     if(COLOR_TYPE.SOLID === nodeInfo.fills[0].type) {
                         const color = nodeInfo.fills[0].color;
                         return Promise.resolve({
-                            name: nodeInfo.name,
+                            name: colorName,
                             color: rgbToHex(color.r * 255, color.g * 255, color.b * 255)
                         });
                     }
                     else if(COLOR_TYPE.GRADIENT_LINEAR === nodeInfo.fills[0].type) {
                         const gradient = getGradient(nodeInfo.fills[0].gradientHandlePositions, nodeInfo.fills[0].gradientStops);
                         return Promise.resolve({
-                            name: nodeInfo.name,
+                            name: colorName,
                             color:`linear-gradient(${gradient})`,
                             gradient: true
                         });

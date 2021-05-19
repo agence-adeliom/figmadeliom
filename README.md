@@ -19,7 +19,7 @@ add in your folder a config file .figmadeliom.json with Figma data :
 ```
 {
   "figma_personal_token": "111111-a1a11a11-1a11-1111-1111-aaaa111a1111",
-  "figma_file_key": "A1A1AAAaa1aAaaaaaAaAa1",
+  "figma_file_key": "A1A1AAAaa1aAaaaaaAaAa1"
 }
 ```
 
@@ -30,3 +30,19 @@ And create a token in "Personal access tokens" section.
 To get you file key, visit project via a browser and copy key from url.
 If you use the Desktop App, you can right click on tab to get the link.
 
+Other parameters are available.
+```
+{
+  "figma_personal_token": "",
+  "figma_file_key": "",
+  "figma_api_url": "https://api.figma.com/v1",
+  "node_ids": {
+      "icons": "2%3A200",
+      "colors": "2%3A359",
+      "fonts": "796%3A32"
+  },
+  "downloadDelay": "100",
+  "outputIconsDir": "./out/icons",
+  "outputSassFile": "./out/sass/_variables.scss"
+}
+```

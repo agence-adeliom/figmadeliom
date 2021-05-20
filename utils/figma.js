@@ -9,6 +9,10 @@ export const COLOR_TYPE = {
     GRADIENT_LINEAR: 'GRADIENT_LINEAR',
 }
 
+export const ELEMENT_TYPE = {
+    TEXT: 'TEXT',
+}
+
 const getApiUrl = () => {
     return configuration.figma_api_url;
 }

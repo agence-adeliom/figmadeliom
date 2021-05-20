@@ -46,3 +46,23 @@ Other parameters are available.
   "outputSassFile": "./out/sass/_variables.scss"
 }
 ```
+
+#Usage
+
+## Icons
+```
+$ npx figmadeliom icons
+```
+This command will downloadicons as svg from Figma project base in folder defined in `outputIconsDir`
+
+## Sass
+```
+$ npx figmadeliom sass
+```
+This command will generate a sass file with colors and gradients from Figma project
+
+###Options:  
+`--no-colors`  Do not add colors  
+`--no-fonts`   Do not add fonts  
+`-h, --help`   display help for command  
+

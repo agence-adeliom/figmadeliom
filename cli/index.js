@@ -4,7 +4,8 @@ import {getPackage, configurationIsComplete} from "../config.js";
 
 const {bin, name: packageName, version} = getPackage();
 
-import {getIcons, buildColors} from "../index.js";
+import {getIcons} from "../lib/icons.js";
+import {buildFile} from '../lib/sass-variables.js';
 
 const getCommandName = () => {
     return (bin && Object.keys(bin)[0]) || packageName;
@@ -23,12 +24,16 @@ export const cli = async () => {
             }
         });
     program.command('sass')
-        .description('Build Sass variables files from Figma Stylesheet')
-        .action((file, options) => {
+        .description('Build Sass colors variables files from Figma Stylesheet')
+        .option('--no-colors', 'Do not add colors')
+        .option('--no-fonts', 'Do not add fonts')
+        .action((options) => {
+            console.log(options);
             if(configurationIsComplete()) {
-                buildColors();
+                buildFile(options.colors, options.fonts);
             }
         });
+
 
     program.parse(process.argv);
 };

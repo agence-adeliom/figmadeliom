@@ -56,3 +56,61 @@ const floatToPercent = (value) => {
 }
 
 
+export const indexToName = (i) => {
+    const values = [
+        'primary',
+        'secondary',
+        'tertiary',
+        'quaternary',
+        'quinary',
+        'senary',
+        'septenary',
+        'octonary',
+        'nonary',
+        'denary'
+    ];
+
+    if(values[i]){
+        return values[i];
+    }
+    let last = values.pop();
+
+    return `${last}-${i}`;
+}
+
+export const getFontStack = (serif = false) => {
+
+    const sansSerif = [
+        '-apple-system',
+        'BlinkMacSystemFont',
+        '"Segoe UI"',
+        'Roboto',
+        'Helvetica',
+        'Arial',
+        'sans-serif',
+        '"Apple Color Emoji"',
+        '"Segoe UI Emoji"',
+        '"Segoe UI Symbol"'
+    ];
+
+    let stack = sansSerif;
+
+    if(serif) {
+        const serifStack = [
+            'Constantia',
+            '"Lucida Bright"',
+            'Lucidabright',
+            '"Lucida Serif"',
+            'Lucida',
+            '"DejaVu Serif"',
+            '"Bitstream Vera Serif"',
+            '"Liberation Serif"',
+            'Georgia',
+            'serif'
+        ];
+        stack = serifStack;
+    }
+
+    return stack.join(', ');
+}
+

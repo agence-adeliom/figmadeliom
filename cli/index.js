@@ -29,7 +29,6 @@ export const cli = async () => {
         .option('--no-colors', 'Do not add colors')
         .option('--no-fonts', 'Do not add fonts')
         .action((options) => {
-            console.log(options);
             if(configurationIsComplete()) {
                 buildFile(options.colors, options.fonts);
         }

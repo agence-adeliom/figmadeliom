@@ -43,7 +43,10 @@ Other parameters are available.
   },
   "downloadDelay": "100",
   "outputIconsDir": "./out/icons",
-  "outputSassFile": "./out/sass/_variables.scss"
+  "outputSassFile": "./out/sass/_variables.scss",
+  
+  "outputHeadingFile": "./out/sass/_heading.scss",
+  "outputTextsFile": "./out/sass/_texts.scss"
 }
 ```
 
@@ -66,3 +69,13 @@ This command will generate a sass file with colors and gradients from Figma proj
 `--no-fonts`   Do not add fonts  
 `-h, --help`   display help for command  
 
+## Typography
+```
+$ npx figmadeliom typo
+```
+This command will generate a sass file for heading and texts from Figma project `outputHeadingFile` and `outputTextsFile` 
+
+###Options
+--no-texts    Do not create texts file  
+--no-heading  Do not create heading file  
+-h, --help    display help for command  

@@ -11,6 +11,28 @@ export const checkFolders = (path) => {
     return path;
 };
 
+
+export const saveFile = (content, path, callback) => {
+
+    let folders = path.split('/');
+    folders.pop();
+    checkFolders(folders.join('/'));
+    const file = path;
+    fs.writeFile(file, content, (err) => {
+        if (callback) {
+            callback(file, err);
+        }
+    });
+}
+
+export const getNameFromPath = (name) => {
+    const folders = name.split('/');
+    const last = folders.pop().trim();
+    return last;
+}
+
+
+
 export const rgbToHex = (r, g, b) => {
     const hexColor = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     if (hexColor.length > 7) {
@@ -29,14 +51,6 @@ export const getGradient = (gradientHandles, colors) => {
 
     return gradient.join(', ');
 };
-
-
-export const getNameFromPath = (name) => {
-    const folders = name.split('/');
-    const last = folders.pop();
-    return last;
-}
-
 
 const calculateAngle = (start, end) => {
     const radians = Math.atan(calculateGradient(start, end))
@@ -78,39 +92,4 @@ export const indexToName = (i) => {
     return `${last}-${i}`;
 }
 
-export const getFontStack = (serif = false) => {
-
-    const sansSerif = [
-        '-apple-system',
-        'BlinkMacSystemFont',
-        '"Segoe UI"',
-        'Roboto',
-        'Helvetica',
-        'Arial',
-        'sans-serif',
-        '"Apple Color Emoji"',
-        '"Segoe UI Emoji"',
-        '"Segoe UI Symbol"'
-    ];
-
-    let stack = sansSerif;
-
-    if(serif) {
-        const serifStack = [
-            'Constantia',
-            '"Lucida Bright"',
-            'Lucidabright',
-            '"Lucida Serif"',
-            'Lucida',
-            '"DejaVu Serif"',
-            '"Bitstream Vera Serif"',
-            '"Liberation Serif"',
-            'Georgia',
-            'serif'
-        ];
-        stack = serifStack;
-    }
-
-    return stack.join(', ');
-}
 

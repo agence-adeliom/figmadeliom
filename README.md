@@ -39,10 +39,12 @@ Other parameters are available.
   "node_ids": {
       "icons": "2%3A200",
       "colors": "2%3A359",
-      "fonts": "796%3A32"
+      "fonts": "796%3A32",
+      "typography": "715%3A929"
   },
-  "downloadDelay": "100",
   "outputIconsDir": "./out/icons",
+  "outputIconsKeepFolder": false,
+  
   "outputSassFile": "./out/sass/_variables.scss",
   
   "outputHeadingFile": "./out/sass/_heading.scss",

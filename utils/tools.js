@@ -1,9 +1,5 @@
 import fs from 'fs';
 
-export const sleep = (ms) => {
-    return new Promise(res => setTimeout(res, ms));
-};
-
 export const checkFolders = (path) => {
     if (!fs.existsSync(path)) {
         fs.mkdirSync(path, { recursive: true });

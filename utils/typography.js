@@ -1,38 +1,11 @@
+import {fontStacks} from "./font-stacks.js";
+
 
 export const getFontStack = (serif = false) => {
-
-    const sansSerif = [
-        '-apple-system',
-        'BlinkMacSystemFont',
-        '"Segoe UI"',
-        'Roboto',
-        'Helvetica',
-        'Arial',
-        'sans-serif',
-        '"Apple Color Emoji"',
-        '"Segoe UI Emoji"',
-        '"Segoe UI Symbol"'
-    ];
-
-    let stack = sansSerif;
-
     if(serif) {
-        const serifStack = [
-            'Constantia',
-            '"Lucida Bright"',
-            'Lucidabright',
-            '"Lucida Serif"',
-            'Lucida',
-            '"DejaVu Serif"',
-            '"Bitstream Vera Serif"',
-            '"Liberation Serif"',
-            'Georgia',
-            'serif'
-        ];
-        stack = serifStack;
+        return fontStacks.georgia;
     }
-
-    return stack.join(', ');
+    return fontStacks.system;
 }
 
 export const figmaNameToMixin = (name) => {
@@ -98,15 +71,21 @@ export const objectToStyle = (object) => {
 
 export const styleToScss = (style, font) => {
     let scss = [];
+
+    const textMixinSignature = ['font-size', 'line-height', 'font-weight'];
+
+
     const formatFontSize = (style, tab = 1) => {
-        let lineHeight = '';
-        if(style['line-height']) {
-            lineHeight = `rem(${style['line-height']})`;
+        let args = [];
+        for(let prop of textMixinSignature) {
+            if(style[prop]){
+                args.push(style[prop]);
+            }
         }
-        if(style['font-size']) {
-         return `${'\t'.repeat(tab)}@include font-size(rem(${style['font-size']})${lineHeight ? ', '+ lineHeight: ''});`
+        if(args.length) {
+            return `${'\t'.repeat(tab)}@include text(${args.join(', ')});`
         }
-    }
+    };
 
     const propToStyle = (prop, style, tab = 1) => {
         let value = style[prop];
@@ -114,7 +93,7 @@ export const styleToScss = (style, font) => {
         value = font[value];
         }
        return `${'\t'.repeat(tab)}${prop}: ${value};`;
-    }
+    };
 
     let size = formatFontSize(style,1);
     if(size){
@@ -124,14 +103,15 @@ export const styleToScss = (style, font) => {
         if(typeof style[prop] === 'object') {
 
             scss.push(`\t@include breakpoint(${prop}) {`);
-            if(style[prop]['font-size'] && style[prop]['font-size']  !== style['font-size']){
+            if((style[prop]['font-size'] && style[prop]['font-size'] !== style['font-size'])
+                || (style[prop]['font-weight'] && style[prop]['font-weight'] !== style['font-weight'])){
                 let bpSize = formatFontSize(style[prop], 2);
                 if(bpSize){
                     scss.push(bpSize);
                 }
             }
             for(let bpProp in style[prop]) {
-                if(['line-height', 'font-size'].indexOf(bpProp) === -1 ){
+                if(textMixinSignature.indexOf(bpProp) === -1 ){
                     if(style[bpProp] && style[bpProp] !== style[prop][bpProp]) {
                         let value = propToStyle(bpProp, style[prop][bpProp], 2);
                         if(value) {
@@ -143,7 +123,7 @@ export const styleToScss = (style, font) => {
             scss.push(`\t}`);
             continue;
         }
-        if(['line-height', 'font-size'].indexOf(prop) === -1 ){
+        if(textMixinSignature.indexOf(prop) === -1 ){
             let value = propToStyle(prop, style, 1);
             if(value) {
                 scss.push(value);

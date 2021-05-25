@@ -37,6 +37,7 @@ export const rgbToHex = (r, g, b) => {
     return hexColor;
 }
 
+//https://github.com/KarlRombauts/Figma-SCSS-Generator
 export const getGradient = (gradientHandles, colors) => {
     const angle = calculateAngle(gradientHandles[0], gradientHandles[1]);
 
@@ -49,13 +50,15 @@ export const getGradient = (gradientHandles, colors) => {
 };
 
 const calculateAngle = (start, end) => {
-    const radians = Math.atan(calculateGradient(start, end))
+    //const radians = Math.atan(calculateGradient(start, end))
+    const radians = Math.atan2(end.y - start.y, end.x - start.x) * -1 + Math.PI;
     return parseInt(radToDeg(radians).toFixed(1))
 }
-
+/*
 const calculateGradient = (start, end) => {
     return (end.y - start.y) / (end.x - start.x) * -1;
 }
+ */
 
 const radToDeg = (radian) => {
     return (180 * radian) / Math.PI;
